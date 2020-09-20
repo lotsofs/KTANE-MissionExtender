@@ -3,6 +3,14 @@ using System.Reflection;
 using UnityEngine;
 using Newtonsoft.Json;
 
+public enum EMSRResults {
+	Success,
+	Empty,
+	NotInstalled,
+	ReceivedNull,
+	Error,
+}
+
 public class ExtendedMissionSettingsReader<T> : MonoBehaviour {
 
 	public static EMSRResults ReadMissionSettings(out T settings) {
@@ -30,7 +38,7 @@ public class ExtendedMissionSettingsReader<T> : MonoBehaviour {
 		}
 		catch (Exception e) {
 			settings = default(T);
-			Debug.Log(e.Message);
+			Debug.Log("[Extended Mission Settings] " + e.Message);
 			return EMSRResults.Error;
 		}
 	}

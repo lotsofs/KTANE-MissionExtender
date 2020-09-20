@@ -156,7 +156,7 @@ public class ExtendedMissionSettings : MonoBehaviour {
 		}
 
 		if (ExtendedMissions.ContainsKey(mission)) {
-			Debug.LogFormat("[Extended Mission Settings] Adding settings to settings pool for mission {0}: {1}", mission, settings);
+			Debug.LogFormat("[Extended Mission Settings] Adding additional settings to settings pool for mission {0}: {1}", mission, settings);
 			JObject o2 = JObject.Parse(ExtendedMissions[mission]);
 			o2.Merge(o1, new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Union });
 			ExtendedMissions[mission] = o2.ToString();

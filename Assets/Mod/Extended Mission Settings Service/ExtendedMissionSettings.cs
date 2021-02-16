@@ -113,12 +113,24 @@ public class ExtendedMissionSettings : MonoBehaviour {
 
 			List<object> componentPoolsToClear = new List<object>();
 			foreach (var cp in componentPools) {
+				bool foundEMS = false; // We dont want to clean up the mess made by someone who erroneously put empty component pools in their mission.
+				// TODO: This for some reason wasn't commited. Did I not finish it? Test whether it works.
 				IList<string> modTypes = fieldModTypes.GetValue(cp) as IList<string>;
+				Debug.Log("ADASDASDASDASDASD");
+				Debug.Log(modTypes.Count);
 				for (int i = modTypes.Count - 1; i >= 0; i--) {
+					Debug.Log(i);
 					if (modTypes[i].StartsWith("Extended Settings")) {
-						if (AddExtendedSettings(mission.name, modTypes[i]))
-							componentPoolsToClear.Add(cp);
+						if (AddExtendedSettings(mission.name, modTypes[i])) {
+							modTypes.RemoveAt(i);
+							Debug.Log("Removed something. Now " + modTypes.Count);
+							foundEMS = true;
+						}
 					}
+				}
+				Debug.Log(modTypes.Count);
+				if (modTypes.Count == 0 && foundEMS) {
+					componentPoolsToClear.Add(cp);
 				}
 			}
 			// when we found our settings, remove their containing component pool so that the mission binder won't complain about 'missing mods'
@@ -166,5 +178,13 @@ public class ExtendedMissionSettings : MonoBehaviour {
 			ExtendedMissions.Add(mission, settings);
 		}
 		return true;
+	}
+
+	bool AddExtendedSettings2(string mission, string modType) {
+		GameObject settingsObject = new GameObject("ExtendedMissionSettingsObject");
+		settingsObject.transform.parent = gameObject.transform;
+
+
+		return false;
 	}
 }

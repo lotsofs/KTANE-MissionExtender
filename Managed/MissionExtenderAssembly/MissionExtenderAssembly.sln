@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30503.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MissionExtenderAssembly", "MissionExtenderAssembly\MissionExtenderAssembly.csproj", "{BFF4CAD1-11B4-450D-95E7-45653C3F234C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BFF4CAD1-11B4-450D-95E7-45653C3F234C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFF4CAD1-11B4-450D-95E7-45653C3F234C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFF4CAD1-11B4-450D-95E7-45653C3F234C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFF4CAD1-11B4-450D-95E7-45653C3F234C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3F2E7055-4335-4344-8482-9AC16510A700}
+	EndGlobalSection
+EndGlobal

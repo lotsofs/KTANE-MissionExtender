@@ -9,6 +9,11 @@ public class KMExtendedMissionSettings : MonoBehaviour {
 
 	// Use this for initialization
 	void Awake () {
+		if (Application.isEditor) {
+			return;
+		}
+		
+#if Debug
 		GameObject EMSGameObject = GameObject.Find("ExtendedMissionSettingsProperties");
 		if (EMSGameObject == null) // Not installed
 			return;
@@ -17,6 +22,7 @@ public class KMExtendedMissionSettings : MonoBehaviour {
 		if (ExtendedMissionSettingsAPI.ContainsKey("GetMissionSettings")) {
 			Settings = (ExtendedMissionSettingsAPI["GetMissionSettings"] as Dictionary<string, List<string>>) ?? settings;
 		}
+#endif
 	}
 
 	/// <summary>

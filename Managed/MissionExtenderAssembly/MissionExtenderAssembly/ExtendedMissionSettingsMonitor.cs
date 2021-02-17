@@ -23,7 +23,7 @@ namespace MissionExtenderAssembly {
 	
 		// gets called every time the player opens a new mission detail page in the binder.
 		private void OnEnable() {
-			ExtendedMissionDetails.ExtendedSettings.Clear();
+			//ExtendedMissionDetails.ExtendedSettings.Clear();
 			StartCoroutine(SetupPage());
 		}
 
@@ -41,14 +41,14 @@ namespace MissionExtenderAssembly {
 			Mission currentMission = (Mission)page.GetType().BaseType.GetField("currentMission", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(page);
 
 			ExtendedMissionDetails extendedMissionDetails = ExtendedMissionDetails.ReadMission(currentMission);
-			if (ExtendedMissionDetails.ExtendedSettings.Count == 0) {
+			if (extendedMissionDetails.ExtendedSettings.Count == 0) {
 				yield break;
 			}
 			
-			foreach (string k in ExtendedMissionDetails.ExtendedSettings.Keys) {
-				Debug.LogFormat("[Extended Mission Settings] Found setting for {0}: {1} of size {2}", currentMission.DisplayNameTerm, k, ExtendedMissionDetails.ExtendedSettings[k].Count);
+			foreach (string k in extendedMissionDetails.ExtendedSettings.Keys) {
+				Debug.LogFormat("[Extended Mission Settings] Found setting for {0}: {1} of size {2}", currentMission.DisplayNameTerm, k, extendedMissionDetails.ExtendedSettings[k].Count);
 			}
-			bool canStart = UpdateMissionDetailInformation(currentMission, currentMission.DescriptionTerm, page);
+			bool canStart = UpdateMissionDetailInformation(currentMission, currentMission.DescriptionTerm, page, extendedMissionDetails);
 			FieldInfo canStartField = typeof(MissionDetailPage).GetField("canStartMission", BindingFlags.Instance | BindingFlags.NonPublic);
 			canStartField.SetValue(page, canStart);
 		}
@@ -70,7 +70,7 @@ namespace MissionExtenderAssembly {
 			return true;
 		}
 
-		public static bool UpdateMissionDetailInformation(Mission mission, string descriptionTerm, MissionDetailPage page) {
+		public static bool UpdateMissionDetailInformation(Mission mission, string descriptionTerm, MissionDetailPage page, ExtendedMissionDetails details) {
 			// Cooperation with the other binder readers (multiple bombs, factory mode) is probably necessary.
 			// There'll be race conditions. If they check first and then this, this should work, but 
 			// if this checks first and then they, they'll likely throw EM in the missing mod types pool again. 
@@ -81,7 +81,7 @@ namespace MissionExtenderAssembly {
 			int maxFrontFaceModuleCount = Math.Max(5, ModManager.Instance.GetMaximumModulesFrontFace());
 
 			int notModulesCount = 0;
-			int selfCount = 0;
+			//int partialPools = 0;
 			
 			bool canStart = false;
 
@@ -89,38 +89,72 @@ namespace MissionExtenderAssembly {
 			string moduleCountText = page.TextModuleCount.text;
 			moduleCountText = moduleCountText.Split(' ')[0];
 			
-			foreach (ComponentPool pool in mission.GeneratorSetting.ComponentPools) {
+			foreach (ComponentPool pool in details.GeneratorSetting.ComponentPools) {
+				int counter = 0;
 				foreach (string modType in pool.ModTypes) {
 					if (modType == "Factory Mode") {
-						if (!FindMultipleBombs()) {
+						if (!FindMultipleBombs() || counter > 0) {
 							missingModTypes.Add(modType);
 						}
 						else {
 							notModulesCount++;
 						}
-						continue;
+						break;	
 					}
 					if (modType.StartsWith("Multiple Bombs")) {
-						if (!FindMultipleBombs()) {
-							missingModTypes.Add(modType);
+						// Multiple Bombs tosses the entire component pool and only checks index 0. We will do the same.
+						if (!FindMultipleBombs() || counter > 0) {
+						missingModTypes.Add(modType);
 						}
 						else {
 							notModulesCount++;
 						}
-						continue;
-					}
-					if (modType.StartsWith("Extended Settings")) {
-						notModulesCount++;
-						selfCount++;
-						continue;
+						break;
 					}
 					if (!ModManager.Instance.HasBombComponent(modType)) {
 						missingModTypes.Add(modType);
 					}
+					counter++;
 				}
 			}
 
-			int totalComponentPools = mission.GeneratorSetting.ComponentPools.Count;
+			//foreach (ComponentPool pool in mission.GeneratorSetting.ComponentPools) {
+			//	int notModulesCountInThisPool = 0;
+			//	foreach (string modType in pool.ModTypes) {
+			//		if (modType == "Factory Mode") {
+			//			if (!FindMultipleBombs()) {
+			//				missingModTypes.Add(modType);
+			//			}
+			//			else {
+			//				notModulesCount++;
+			//			}
+			//			continue;
+			//		}
+			//		if (modType.StartsWith("Multiple Bombs")) {
+			//			if (!FindMultipleBombs()) {
+			//				missingModTypes.Add(modType);
+			//			}
+			//			else {
+			//				notModulesCount++;
+			//			}
+			//			continue;
+			//		}
+			//		if (modType.StartsWith("Extended Settings")) {
+			//			notModulesCount++;
+			//			notModulesCountInThisPool++;
+			//			selfCount++;
+			//			continue;
+			//		}
+			//		if (!ModManager.Instance.HasBombComponent(modType)) {
+			//			missingModTypes.Add(modType);
+			//		}
+			//	}
+			//	if (notModulesCountInThisPool != pool.ModTypes.Count) {
+			//		partialPools++;
+			//	}
+			//}
+
+			int totalComponentPools = details.GeneratorSetting.ComponentPools.Count;
 
 			if (description.text.StartsWith("A room that can support more bombs is required.")) {
 				// multiple bombs already looked at this and determined we need a different room, so the mission can't start regardless. Don't bother.
@@ -141,17 +175,26 @@ namespace MissionExtenderAssembly {
 				Localization.SetTerm("BombBinder/error_needABiggerBomb", description.gameObject);
 				Localization.SetParameter("MAX_MODULE_COUNT", maxModuleCount.ToString(), description.gameObject);
 			}
+			else if (details.InvalidJson) {
+				canStart = false;
+				page.TextDescription.text = "An error occured reading the extended mission settings for this mission.";
+			}
 			else {
 				canStart = true;
 				Localization.SetTerm(descriptionTerm, description.gameObject);
 			}
 
-			int writtenModuleCount = 0;
+			int totalTotalComponentPools = mission.GeneratorSetting.ComponentPools.Count;
+			int writtenModuleCount = -1;
+			int selfCount = totalTotalComponentPools - totalComponentPools;
+
 			if (!int.TryParse(moduleCountText, out writtenModuleCount)) {
-				writtenModuleCount = mission.GeneratorSetting.ComponentPools.Count;
+				writtenModuleCount = totalTotalComponentPools;
 			}
-			if (writtenModuleCount > totalComponentPools) {
-				// multiple bombs already processed this. Don't touch it. 
+			if (writtenModuleCount > totalTotalComponentPools) {
+				// Multiple Bombs established we have more modules due to multiple bombs.
+				Localization.SetTerm("BombBinder/txtModuleCount", page.TextModuleCount.gameObject);
+				Localization.SetParameter("MODULE_COUNT", (writtenModuleCount - selfCount).ToString(), page.TextModuleCount.gameObject);
 			}
 			else {
 				Localization.SetTerm("BombBinder/txtModuleCount", page.TextModuleCount.gameObject);

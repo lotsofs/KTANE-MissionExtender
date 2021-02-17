@@ -10,25 +10,7 @@ namespace MissionExtenderAssembly {
 	public class MissionExtender : MonoBehaviour {
 		private KMGameInfo _gameInfo = null;
 		private KMGameCommands _gameCommands = null;
-		//public static Settings _modSettings;
-
-		//public int CurrentSeed {
-		//	get {
-		//		if (CurrentState != KMGameInfo.State.Setup && CurrentState != KMGameInfo.State.PostGame)
-		//			return _currentSeed;
-		//		return _modSettings.Settings.RuleSeed;
-		//	}
-		//}
-
-		//private int _currentSeed;
-
-		//public bool CurrentRandomSeed {
-		//	get {
-		//		if (CurrentState != KMGameInfo.State.Setup && CurrentState != KMGameInfo.State.PostGame)
-		//			return _currentRandomSeed;
-		//		return _modSettings.Settings.RandomRuleSeed;
-		//	}
-		//}
+		public static ExtendedMissionDetails CurrentMissionDetails = null;
 
 		private bool _currentRandomSeed;
 
@@ -133,12 +115,13 @@ namespace MissionExtenderAssembly {
 		}
 
 		private IEnumerator SetupGameplay() {
+			CurrentMissionDetails = null;
 			Mission mission;
-			ExtendedMissionDetails details;
-			ExtendedMissionDetails.ExtendedSettings.Clear();
+			//ExtendedMissionDetails details;
+			//ExtendedMissionDetails.ExtendedSettings.Clear();
 			if (GameplayState.MissionToLoad != ModMission.CUSTOM_MISSION_ID && GameplayState.MissionToLoad != FreeplayMissionGenerator.FREEPLAY_MISSION_ID) {
 				mission = MissionManager.Instance.GetMission(GameplayState.MissionToLoad);
-				details = ExtendedMissionDetails.ReadMission(mission, true);
+				CurrentMissionDetails = ExtendedMissionDetails.ReadMission(mission, true);
 			}
 			else {
 				yield break;

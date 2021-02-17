@@ -9,17 +9,17 @@ using UnityEngine;
 
 namespace MissionExtenderAssembly {
 	class ExtendedMissionDetails {
-		public Dictionary<string, List<string>> ExtendedSettings { get; set; } = new Dictionary<string, List<string>>();
+		public static Dictionary<string, List<string>> ExtendedSettings { get; set; } = new Dictionary<string, List<string>>();
 
 		public static ExtendedMissionDetails ReadMission(Mission mission) {
-			List<ComponentPool> componentPools;
-			return ReadMission(mission, false, out componentPools);
+			//List<ComponentPool> componentPools;
+			return ReadMission(mission, false);
 		}
 
-		public static ExtendedMissionDetails ReadMission(Mission mission, bool removeComponentPools, out List<ComponentPool> componentPools) {
+		public static ExtendedMissionDetails ReadMission(Mission mission, bool removeComponentPools) {
 			// todo: NESTING HELL. Fix
 			ExtendedMissionDetails missionDetails = new ExtendedMissionDetails();
-			componentPools = new List<ComponentPool>();
+			//componentPools = new List<ComponentPool>();
 			if (mission.GeneratorSetting != null) {
 				GeneratorSetting generatorSetting = UnityEngine.Object.Instantiate(mission).GeneratorSetting;
 				if (generatorSetting.ComponentPools != null) {
@@ -46,16 +46,16 @@ namespace MissionExtenderAssembly {
 								}
 								foreach (var o in o1.Properties()) {
 									if (o.Value.Type == JTokenType.String || o.Value.Type == JTokenType.Integer) {
-										DictionaryAdd(missionDetails.ExtendedSettings, o.Name.ToString(), o.Value.ToString());
+										DictionaryAdd(ExtendedMissionDetails.ExtendedSettings, o.Name.ToString(), o.Value.ToString());
 									}
 									else if (o.Value.Type == JTokenType.Array) {
 										foreach (var p in o.Value) {
-											DictionaryAdd(missionDetails.ExtendedSettings, o.Name.ToString(), p.ToString());
+											DictionaryAdd(ExtendedMissionDetails.ExtendedSettings, o.Name.ToString(), p.ToString());
 										}
 									}
 								}
 								generatorSetting.ComponentPools.RemoveAt(i);
-								componentPools.Add(mission.GeneratorSetting.ComponentPools[i]);
+								//componentPools.Add(mission.GeneratorSetting.ComponentPools[i]);
 								if (removeComponentPools) {
 									mission.GeneratorSetting.ComponentPools.RemoveAt(i);
 								}

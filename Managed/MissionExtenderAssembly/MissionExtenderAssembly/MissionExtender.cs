@@ -1,4 +1,5 @@
-﻿using MissionExtenderAssembly;
+﻿using Assets.Scripts.Missions;
+using MissionExtenderAssembly;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -33,7 +34,6 @@ namespace MissionExtenderAssembly {
 
 		internal static ExtendedMissionSettingsProperties PublicProperties = new ExtendedMissionSettingsProperties();
 
-
 		private bool _started = false;
 
 		private void Awake() {
@@ -45,7 +45,7 @@ namespace MissionExtenderAssembly {
 			GameObject infoObject = new GameObject("ExtendedMissionSettingsProperties");
 			infoObject.transform.parent = gameObject.transform;
 			PublicProperties = infoObject.AddComponent<ExtendedMissionSettingsProperties>();
-			//PublicProperties.MissionExtender = this;
+			PublicProperties.MissionExtender = this;
 			LoadMod();
 			_started = true;
 			Debug.Log("[Extended Mission Settings] Awoken");
@@ -121,7 +121,7 @@ namespace MissionExtenderAssembly {
 
 		private void OnGameStateChanged(KMGameInfo.State state) {
 			if (state == KMGameInfo.State.Gameplay) {
-				// todo: Read the Extended Mission Settings
+				StartCoroutine(SetupGameplay());
 			}
 			else {
 				Debug.Log("[Extended Mission Settings] Cleaning up.");
@@ -132,11 +132,25 @@ namespace MissionExtenderAssembly {
 			}
 		}
 
+		private IEnumerator SetupGameplay() {
+			Mission mission;
+			ExtendedMissionDetails details;
+			ExtendedMissionDetails.ExtendedSettings.Clear();
+			if (GameplayState.MissionToLoad != ModMission.CUSTOM_MISSION_ID && GameplayState.MissionToLoad != FreeplayMissionGenerator.FREEPLAY_MISSION_ID) {
+				mission = MissionManager.Instance.GetMission(GameplayState.MissionToLoad);
+				details = ExtendedMissionDetails.ReadMission(mission, true);
+			}
+			else {
+				yield break;
+			}
+			yield return null;	
+		}
+
 		private IEnumerator SetupSetupRoom() {
 			yield return null;
 			SetupRoom setupRoom = FindObjectOfType<SetupRoom>();
-			MissionDetailPageMonitor missionDetailPageMonitor = setupRoom.BombBinder.MissionDetailPage.gameObject.AddComponent<MissionDetailPageMonitor>();
-			// todo: Mission Detail Page Monitor
+			ExtendedMissionSettingsMonitor missionPageMonitor = setupRoom.BombBinder.MissionDetailPage.gameObject.AddComponent<ExtendedMissionSettingsMonitor>();
+			Debug.Log("[Extended Mission Settings] Started monitoring Bomb Binder");
 		}
 
 

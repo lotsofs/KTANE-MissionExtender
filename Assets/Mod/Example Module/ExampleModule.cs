@@ -14,6 +14,20 @@ public class ExampleModule : MonoBehaviour
 
     void Start()
     {
+
+        GameObject EMSGameObject = GameObject.Find("ExtendedMissionSettingsProperties");
+        if (EMSGameObject == null) // Not installed
+            return;
+
+        IDictionary<string, object> ExtendedMissionSettingsAPI = EMSGameObject.GetComponent<IDictionary<string, object>>();
+        Dictionary<string, List<string>> settings2 = new Dictionary<string, List<string>>();
+        if (ExtendedMissionSettingsAPI.ContainsKey("GetMissionSettings")) {
+            settings2 = (ExtendedMissionSettingsAPI["GetMissionSettings"] as Dictionary<string, List<string>>) ?? settings2;
+		}
+        Debug.Log(settings2.Count + " Apples");
+
+        return;
+
         // We fetch the settings
         ExampleModuleMissionSettings settings;
         EMSRResults result = ExtendedMissionSettingsReader<ExampleModuleMissionSettings>.ReadMissionSettings(out settings);

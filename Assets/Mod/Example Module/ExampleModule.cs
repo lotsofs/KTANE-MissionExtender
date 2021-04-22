@@ -6,112 +6,86 @@ public class ExampleModule : MonoBehaviour
 {
     public KMSelectable[] buttons;
 
-    public ExtendedMissionSettingsReader<ExampleModuleMissionSettings> emsr;    // Relevant settings for this module are in ExampleModuleMissionSettings.cs
+    private KMExtendedMissionSettings _kmSettings;
+    
     public Renderer moduleBackdrop;
-
-    int correctIndex;
+    int correctIndex = -1;
     bool isActivated = false;
+
 
     void Start()
     {
 
-        GameObject EMSGameObject = GameObject.Find("ExtendedMissionSettingsProperties");
-        if (EMSGameObject == null) // Not installed
-            return;
+        _kmSettings = GetComponent<KMExtendedMissionSettings>();
 
-        IDictionary<string, object> ExtendedMissionSettingsAPI = EMSGameObject.GetComponent<IDictionary<string, object>>();
-        Dictionary<string, List<string>> settings2 = new Dictionary<string, List<string>>();
-        if (ExtendedMissionSettingsAPI.ContainsKey("GetMissionSettings")) {
-            settings2 = (ExtendedMissionSettingsAPI["GetMissionSettings"] as Dictionary<string, List<string>>) ?? settings2;
-		}
-        Debug.Log(settings2.Count + " Apples");
+        ProcessExtendedMissionSettings();
+        Init();
 
-        return;
-
-        // We fetch the settings
-        ExampleModuleMissionSettings settings;
-        EMSRResults result = ExtendedMissionSettingsReader<ExampleModuleMissionSettings>.ReadMissionSettings(out settings);
-        switch (result) {
-            case EMSRResults.NotInstalled:
-                // Returned when the service mod is not installed. If it was needed for this mission, the mission wouldn't have been able to start anyway.
-            case EMSRResults.Empty:
-                // The service mod is installed, but this mission has no settings.
-                Init();
-                break;
-            case EMSRResults.Error:
-                // An error occured when trying to read the settings from the service. Could be anything. Log worthy.
-                Debug.Log("[Example Module #x] An exception occured when trying to read the mission settings.");
-                Init();
-                break;
-            case EMSRResults.ReceivedNull:
-                // If no settings are available for this mission, the service would provide an empty string. 
-                // However, if the string is null, this means that the service is not detecting the mission correctly, or
-                // something else is going wrong. Very log worthy.
-                Debug.Log("[Example Module #x] There was an issue with the EMS service. Please file a bug report with an unfiltered log file.");
-                Init();
-                break;
-            case EMSRResults.Success:
-                // The service has some settings for this mission. This does not mean, however, that these settings also apply to our module. They could be for other mods instead.
-                
-                // Check the setting for this module dealing with changing its color.
-                Color color;
-                if (string.IsNullOrEmpty(settings.ExampleModule_Color)) {
-                    Debug.LogFormat("[Example Module #x] Extended Mission Settings are present, but none dictating this module's color.");
-                }
-                else if (ColorUtility.TryParseHtmlString(settings.ExampleModule_Color, out color)) {
-                    Debug.LogFormat("[Example Module #x] EMS dictates the changing of the module's color to {0}", settings.ExampleModule_Color);
-                    moduleBackdrop.material.color = color;
-                }
-                else {
-                    Debug.LogFormat("[Example Module #x] an EMS setting for changing this module's color was provided, but its value does not make sense: {0}", settings.ExampleModule_Color);
-                }
-
-                // Check the setting for this module dealing with setting its solution.
-                if (!string.IsNullOrEmpty(settings.ExampleModule_CorrectButton)) {
-                    switch (settings.ExampleModule_CorrectButton.ToLowerInvariant().Trim()) {
-                        case "topleft":
-                            Debug.LogFormat("[Example Module #x] EMS determined the solution should be {0}", settings.ExampleModule_CorrectButton);
-                            Init(0);       // TL
-                            break;
-                        case "bottomleft":
-                            Debug.LogFormat("[Example Module #x] EMS determined the solution should be {0}", settings.ExampleModule_CorrectButton);
-                            Init(2);    // BL
-                            break;
-                        case "topright":
-                            Debug.LogFormat("[Example Module #x] EMS determined the solution should be {0}", settings.ExampleModule_CorrectButton);
-                            Init(1); // TR
-                            break;
-                        case "bottomright":
-                            Debug.LogFormat("[Example Module #x] EMS determined the solution should be {0}", settings.ExampleModule_CorrectButton);
-                            Init(3); // BR
-                            break;
-                        default:
-                            Debug.LogFormat("[Example Module #x] The provided EMS value for ExampleModule_CorrectButton was invalid. Received: {0}", settings.ExampleModule_CorrectButton);
-                            Init(); // random
-                            break;
-                    }
-                }
-                else {
-                    Debug.LogFormat("[Example Module #x] Extended Mission Settings are present, but none dictating this module's solution.");
-                    Init(); // random
-                }
-                break;                
-        }
         GetComponent<KMBombModule>().OnActivate += ActivateModule;
+    }
+
+    /// <summary>
+    /// Reads and processes all the settings from EMS possible for this module.
+    /// </summary>
+    void ProcessExtendedMissionSettings() {
+        // dont do anything if no settings are provided at all
+        if (!_kmSettings.SettingsProvided) {
+            return;
+        }
+
+        // Look if a color has been provided in the settings
+        string colorStr = _kmSettings.GetStringSetting("ExampleModule_Color");
+        // If so, process it.
+        if (colorStr != null) {
+            Color color;
+            if (ColorUtility.TryParseHtmlString(colorStr, out color)) {
+                Debug.LogFormat("[Example Module #x] EMS dictates the changing of the module's color to {0}", colorStr);
+                moduleBackdrop.material.color = color;
+            }
+            else {
+                Debug.LogFormat("[Example Module #x] an EMS setting for changing this module's color was provided, but its value does not make sense: \"{0}\"", colorStr);
+            }
+        }
+
+        // Now do the same, but for the solution setting.
+        string solutionStr = _kmSettings.GetStringSetting("ExampleModule_CorrectButton");
+        if (solutionStr != null) {
+            switch (solutionStr.ToLowerInvariant().Trim()) {
+                case "topleft":
+                    Debug.LogFormat("[Example Module #x] EMS determined the solution should be {0}", solutionStr);
+                    correctIndex = 0;       // TL
+                    break;
+                case "bottomleft":
+                    Debug.LogFormat("[Example Module #x] EMS determined the solution should be {0}", solutionStr);
+                    correctIndex = 2;    // BL
+                    break;
+                case "topright":
+                    Debug.LogFormat("[Example Module #x] EMS determined the solution should be {0}", solutionStr);
+                    correctIndex = 1; // TR
+                    break;
+                case "bottomright":
+                    Debug.LogFormat("[Example Module #x] EMS determined the solution should be {0}", solutionStr);
+                    correctIndex = 3; // BR
+                    break;
+                default:
+                    Debug.LogFormat("[Example Module #x] The provided EMS value for ExampleModule_CorrectButton was invalid. Received: {0}", solutionStr);
+                    break;
+            }
+        } 
+        // Put a separator bar in the logging.
+        if (solutionStr != null || colorStr != null) {
+            Debug.Log("[Example Module #x] ----------------");
+        }
     }
 
     /// <summary>
     /// Calculates the solution.
     /// </summary>
     /// <param name="index">Set it to somethign specific (reading order)</param>
-    void Init(int index = -1)
+    void Init()
     {
-        if (index < 0 || index > 3) {
+        if (correctIndex == -1) {
             correctIndex = Random.Range(0, 4);
-        }
-        else {
-            Debug.LogFormat("[Example Module #x] ----------------", correctIndex + 1);
-            correctIndex = index;
         }
         Debug.LogFormat("[Example Module #x] Solution is button number {0} in standard reading order.", correctIndex + 1);
 

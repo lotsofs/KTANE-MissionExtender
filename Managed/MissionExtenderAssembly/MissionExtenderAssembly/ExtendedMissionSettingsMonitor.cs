@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace MissionExtenderAssembly {
 
-	// Original script by Lupo511 from Multiple Bombs
+	// Original scripts by Lupo511 from Multiple Bombs
 
 	class ExtendedMissionSettingsMonitor : MonoBehaviour {
 		private MissionDetailPage page;
@@ -23,7 +23,6 @@ namespace MissionExtenderAssembly {
 	
 		// gets called every time the player opens a new mission detail page in the binder.
 		private void OnEnable() {
-			//ExtendedMissionDetails.ExtendedSettings.Clear();
 			StartCoroutine(SetupPage());
 		}
 
@@ -37,7 +36,7 @@ namespace MissionExtenderAssembly {
 
 		private IEnumerator SetupPage() {
 			yield return null;
-			yield return null;
+			yield return null;	// TODO: Double yield return null to ensure this goes after Multiple Bombs? Big oof. Collaborate with the MB team.
 			Mission currentMission = (Mission)page.GetType().BaseType.GetField("currentMission", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(page);
 
 			ExtendedMissionDetails extendedMissionDetails = ExtendedMissionDetails.ReadMission(currentMission);
@@ -71,7 +70,7 @@ namespace MissionExtenderAssembly {
 		}
 
 		public static bool UpdateMissionDetailInformation(Mission mission, string descriptionTerm, MissionDetailPage page, ExtendedMissionDetails details) {
-			// Cooperation with the other binder readers (multiple bombs, factory mode) is probably necessary.
+			// TODO: Cooperation with the other binder readers (multiple bombs, factory mode) is probably necessary.
 			// There'll be race conditions. If they check first and then this, this should work, but 
 			// if this checks first and then they, they'll likely throw EM in the missing mod types pool again. 
 			// TODO: Submit a PR there to account for the new boy in town. Although I'm not entirely sure what takes care of
@@ -84,6 +83,7 @@ namespace MissionExtenderAssembly {
 			//int partialPools = 0;
 			
 			bool canStart = false;
+			bool notSupported = false;
 
 			TextMeshPro description = page.TextDescription;
 			string moduleCountText = page.TextModuleCount.text;
@@ -93,6 +93,7 @@ namespace MissionExtenderAssembly {
 				int counter = 0;
 				foreach (string modType in pool.ModTypes) {
 					if (modType == "Factory Mode") {
+						notSupported = true;	// TODO: Fix this together with the Multiple Bombs team.
 						if (!FindMultipleBombs() || counter > 0) {
 							missingModTypes.Add(modType);
 						}
@@ -102,6 +103,7 @@ namespace MissionExtenderAssembly {
 						break;	
 					}
 					if (modType.StartsWith("Multiple Bombs")) {
+						notSupported = true;    // TODO: Fix this together with the Multiple Bombs team, as right now this overrides multiple bombs doing a missing component error if one of the modules is missing.
 						// Multiple Bombs tosses the entire component pool and only checks index 0. We will do the same.
 						if (!FindMultipleBombs() || counter > 0) {
 						missingModTypes.Add(modType);
@@ -118,45 +120,15 @@ namespace MissionExtenderAssembly {
 				}
 			}
 
-			//foreach (ComponentPool pool in mission.GeneratorSetting.ComponentPools) {
-			//	int notModulesCountInThisPool = 0;
-			//	foreach (string modType in pool.ModTypes) {
-			//		if (modType == "Factory Mode") {
-			//			if (!FindMultipleBombs()) {
-			//				missingModTypes.Add(modType);
-			//			}
-			//			else {
-			//				notModulesCount++;
-			//			}
-			//			continue;
-			//		}
-			//		if (modType.StartsWith("Multiple Bombs")) {
-			//			if (!FindMultipleBombs()) {
-			//				missingModTypes.Add(modType);
-			//			}
-			//			else {
-			//				notModulesCount++;
-			//			}
-			//			continue;
-			//		}
-			//		if (modType.StartsWith("Extended Settings")) {
-			//			notModulesCount++;
-			//			notModulesCountInThisPool++;
-			//			selfCount++;
-			//			continue;
-			//		}
-			//		if (!ModManager.Instance.HasBombComponent(modType)) {
-			//			missingModTypes.Add(modType);
-			//		}
-			//	}
-			//	if (notModulesCountInThisPool != pool.ModTypes.Count) {
-			//		partialPools++;
-			//	}
-			//}
 
 			int totalComponentPools = details.GeneratorSetting.ComponentPools.Count;
 
-			if (description.text.StartsWith("A room that can support more bombs is required.")) {
+			if (notSupported) {
+				// todo: Support multiple bombs.
+				page.TextDescription.text = "Using both Extended Mission Settings & Multiple Bombs/Factory Mode is not supported at this time.";
+				canStart = false;
+			}
+			else if (description.text.StartsWith("A room that can support more bombs is required.")) {
 				// multiple bombs already looked at this and determined we need a different room, so the mission can't start regardless. Don't bother.
 				canStart = false;
 			}

@@ -37,10 +37,12 @@ namespace MissionExtenderAssembly {
 		private IEnumerator SetupPage() {
 			yield return null;
 			yield return null;	// TODO: Double yield return null to ensure this goes after Multiple Bombs? Big oof. Collaborate with the MB team.
+			// TODO: Maybe at this point just permanently erase it from the mission binder and store it in the property thing instead?
 			Mission currentMission = (Mission)page.GetType().BaseType.GetField("currentMission", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(page);
 
 			ExtendedMissionDetails extendedMissionDetails = ExtendedMissionDetails.ReadMission(currentMission);
 			if (extendedMissionDetails.ExtendedSettings.Count == 0) {
+				Debug.LogFormat("[Extended Mission Settings] Found no settings for {0}", currentMission.DisplayNameTerm);
 				yield break;
 			}
 			

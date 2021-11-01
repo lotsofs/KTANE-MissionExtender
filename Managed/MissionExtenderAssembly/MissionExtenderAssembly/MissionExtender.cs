@@ -85,15 +85,22 @@ namespace MissionExtenderAssembly {
 
 		private IEnumerator SetupGameplay() {
 			CurrentMissionDetails = null;
-			Mission mission;
+			Mission mission = null;
+			ComponentPool componentPool = null;
 			if (GameplayState.MissionToLoad != ModMission.CUSTOM_MISSION_ID && GameplayState.MissionToLoad != FreeplayMissionGenerator.FREEPLAY_MISSION_ID) {
 				mission = MissionManager.Instance.GetMission(GameplayState.MissionToLoad);
-				CurrentMissionDetails = ExtendedMissionDetails.ReadMission(mission, true);
+				Debug.Log("Extended Mission Settings doing the thing");
+				CurrentMissionDetails = ExtendedMissionDetails.ReadMission(mission, true, out componentPool);
 			}
 			else {
 				yield break;
 			}
-			yield return null;	
+			Debug.Log("[Extended Mission Settings] Done.");
+			yield return null;
+
+			if (GameplayState.MissionToLoad != ModMission.CUSTOM_MISSION_ID && GameplayState.MissionToLoad != FreeplayMissionGenerator.FREEPLAY_MISSION_ID) {
+				mission.GeneratorSetting.ComponentPools.Add(componentPool);
+			}
 		}
 
 		private IEnumerator SetupSetupRoom() {

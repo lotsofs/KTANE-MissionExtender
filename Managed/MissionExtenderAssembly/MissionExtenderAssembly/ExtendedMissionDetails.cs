@@ -14,11 +14,13 @@ namespace MissionExtenderAssembly {
 		public GeneratorSetting GeneratorSetting;
 
 		public static ExtendedMissionDetails ReadMission(Mission mission) {
-			return ReadMission(mission, false);
+			ComponentPool c;
+			return ReadMission(mission, false, out c);
 		}
 
-		public static ExtendedMissionDetails ReadMission(Mission mission, bool removeComponentPools) {
+		public static ExtendedMissionDetails ReadMission(Mission mission, bool removeComponentPools, out ComponentPool componentPool) {
 			// todo: NESTING HELL. Fix
+			componentPool = new ComponentPool();
 			ExtendedMissionDetails missionDetails = new ExtendedMissionDetails();
 			if (mission.GeneratorSetting != null) {
 				GeneratorSetting generatorSetting = UnityEngine.Object.Instantiate(mission).GeneratorSetting;
@@ -59,6 +61,10 @@ namespace MissionExtenderAssembly {
 									}
 									generatorSetting.ComponentPools[i].ModTypes.RemoveAt(j);
 									if (removeComponentPools) {
+										if (componentPool.ModTypes == null) {
+											componentPool.ModTypes = new List<string>();
+										}
+										componentPool.ModTypes.Add(mission.GeneratorSetting.ComponentPools[i].ModTypes[j]);
 										mission.GeneratorSetting.ComponentPools[i].ModTypes.RemoveAt(j);
 									}
 								}

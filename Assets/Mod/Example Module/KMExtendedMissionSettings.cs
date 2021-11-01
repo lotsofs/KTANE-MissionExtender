@@ -61,6 +61,28 @@ public class KMExtendedMissionSettings : MonoBehaviour {
 	}
 
 	/// <summary>
+	/// Returns the int stored in setting settingName
+	/// </summary>
+	/// <param name="settingName">The name of the setting to return</param>
+	/// <param name="noneFound">The int to return if none is found.</param>
+	/// <returns>The int, or noneFound (default 0) if not found.</returns>
+	public bool GetBoolSetting(string settingName, bool noneFound = false) {
+		ReadSettings();
+		if (Settings.ContainsKey(settingName)) {
+			bool result;
+			if (bool.TryParse(Settings[settingName][0], out result)) {
+				return result;
+			}
+			else {
+				return noneFound;
+			}
+		}
+		else {
+			return noneFound;
+		}
+	}
+
+	/// <summary>
 	/// Returns the list of strings stored in setting settingName
 	/// </summary>
 	/// <param name="settingName">The name of the setting to return</param>
@@ -93,6 +115,31 @@ public class KMExtendedMissionSettings : MonoBehaviour {
 					return null;
 				}
 			}			
+			return results;
+		}
+		else {
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// Returns the list of ints stored in setting settingName
+	/// </summary>
+	/// <param name="settingName">The name of the setting to return</param>
+	/// <returns>The int list, or null if not found.</returns>
+	public List<bool> GetBoolListSetting(string settingName) {
+		ReadSettings();
+		List<bool> results = new List<bool>();
+		if (Settings.ContainsKey(settingName)) {
+			foreach (string item in Settings[settingName]) {
+				bool result;
+				if (bool.TryParse(Settings[settingName][0], out result)) {
+					results.Add(result);
+				}
+				else {
+					return null;
+				}
+			}
 			return results;
 		}
 		else {

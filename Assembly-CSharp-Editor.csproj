@@ -345,13 +345,13 @@
  <HintPath>D:/Programs/Game Engines/Unity/2017.4.22f1/Editor/Data/PlaybackEngines/windowsstandalonesupport/UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
  </Reference>
  <Reference Include="KMFramework">
- <HintPath>D:/Repositories/KTANE-MissionExtender/Assets/Plugins/Managed/KMFramework.dll</HintPath>
+ <HintPath>D:/Repositories/KTANE/KTANE-MissionExtender/Assets/Plugins/Managed/KMFramework.dll</HintPath>
  </Reference>
  <Reference Include="MissionExtenderAssembly">
- <HintPath>D:/Repositories/KTANE-MissionExtender/Assets/Plugins/Managed/MissionExtenderAssembly.dll</HintPath>
+ <HintPath>D:/Repositories/KTANE/KTANE-MissionExtender/Assets/Plugins/Managed/MissionExtenderAssembly.dll</HintPath>
  </Reference>
  <Reference Include="Newtonsoft.Json">
- <HintPath>D:/Repositories/KTANE-MissionExtender/Assets/Plugins/Managed/Newtonsoft.Json.dll</HintPath>
+ <HintPath>D:/Repositories/KTANE/KTANE-MissionExtender/Assets/Plugins/Managed/Newtonsoft.Json.dll</HintPath>
  </Reference>
  <Reference Include="UnityEditor.Advertisements">
  <HintPath>C:/Users/w10-upgrade/AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.ads@2.0.8/Editor/UnityEditor.Advertisements.dll</HintPath>

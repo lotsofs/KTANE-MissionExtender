@@ -10,8 +10,8 @@ using UnityEngine;
 namespace MissionExtenderAssembly {
 	public class ExtendedMissionDetails {
 		public Dictionary<string, List<string>> ExtendedSettings { get; set; } = new Dictionary<string, List<string>>();
-		public bool InvalidJson = false;
-		public GeneratorSetting GeneratorSetting;
+		//public bool InvalidJson = false;
+		//public GeneratorSetting GeneratorSetting;
 
 		//public static ExtendedMissionDetails ReadMission(Mission mission) {
 		//	ComponentPool c;
@@ -102,13 +102,13 @@ namespace MissionExtenderAssembly {
 
 
 
-		public static void DictionaryAdd(Dictionary<string,List<string>> dict, string key, string value) {
-			if (dict.ContainsKey(key)) {
-				dict[key].Add(value);
-			}
-			else {
-				dict[key] = new List<string> { value };
-			}
-		}
+		//public static void DictionaryAdd(Dictionary<string,List<string>> dict, string key, string value) {
+		//	if (dict.ContainsKey(key)) {
+		//		dict[key].Add(value);
+		//	}
+		//	else {
+		//		dict[key] = new List<string> { value };
+		//	}
+		//}
 	}
 }

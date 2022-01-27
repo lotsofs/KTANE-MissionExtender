@@ -15,6 +15,8 @@ namespace MissionExtenderAssembly {
 		public static ExtendedMissionDetails CurrentMissionDetails = null;
 		public Dictionary<string, ExtendedMissionDetails> MissionDetails = new Dictionary<string, ExtendedMissionDetails>();
 
+		private ExtendedMissionDetails _emptyDetails = new ExtendedMissionDetails();
+
 		internal static ExtendedMissionSettingsProperties PublicProperties = new ExtendedMissionSettingsProperties();
 
 		private bool _started = false;
@@ -68,7 +70,7 @@ namespace MissionExtenderAssembly {
 
 		private void OnGameStateChanged(KMGameInfo.State state) {
 			if (state == KMGameInfo.State.Gameplay) {
-				StartCoroutine(SetupGameplay());
+				CurrentMissionDetails = GetMissionDetails();
 			}
 			else {
 				Debug.LogFormat("[Extended Mission Settings] Going into {0} state.", state);
@@ -79,19 +81,24 @@ namespace MissionExtenderAssembly {
 			}
 		}
 
-		private IEnumerator SetupGameplay() {
-			CurrentMissionDetails = null;
+		private ExtendedMissionDetails GetMissionDetails() {
 			Mission mission = null;
 			//ComponentPool componentPool = null;
 			if (GameplayState.MissionToLoad != ModMission.CUSTOM_MISSION_ID && GameplayState.MissionToLoad != FreeplayMissionGenerator.FREEPLAY_MISSION_ID) {
 				// mission has a name
 				mission = MissionManager.Instance.GetMission(GameplayState.MissionToLoad);
-				CurrentMissionDetails = MissionDetails[mission.ID];
-				Debug.LogFormat("[Extended Mission Settings] Mission {0} has {1} extended settings provided.", mission.ID, CurrentMissionDetails.ExtendedSettings.Count);
-				//ExtendedMissionDetails.ReadMission(mission, true, out componentPool);
+				if (MissionDetails.ContainsKey(mission.ID)) {
+					Debug.LogFormat("[Extended Mission Settings] Mission {0} has {1} extended settings provided.", mission.ID, MissionDetails[mission.ID].ExtendedSettings.Count);
+					return MissionDetails[mission.ID];
+				}
+				else {
+					Debug.LogFormat("[Extended Mission Settings] Mission {0} has no extended settings provided.", mission.ID);
+					return _emptyDetails;
+				}
 			}
 			else {
-				yield break;
+				Debug.LogFormat("[Extended Mission Settings] Mission is freeplay or custom.");
+				return _emptyDetails;
 			}
 			//Debug.Log("[Extended Mission Settings] Done.");
 			//yield return null;
